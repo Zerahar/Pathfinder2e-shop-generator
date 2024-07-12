@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Page Title</title>
+    <script>
+        async function GetData(e) {
+            e.preventDefault();
+            const list = document.getElementById("results");
+            list.innerHTML = "";
+            const form = document.getElementById("form");
+            const response = await fetch('http://localhost:3000/shop/?' + new URLSearchParams(new FormData(form)));
+            if (!response.ok) {
+                throw new Error(`Response status: ${response.status}`);
+            }
+            const json = await response.json();
+            console.log(json);
+            json.forEach(element => {
+                var li = document.createElement('li');
+                var price = element.price_raw ? element.price_raw : "varies"
+                var summary = element.summary ? element.summary : "No description"
+                const node = document.createTextNode("lvl " + element.level + " - " + element.name + ", price: " + price);
+                li.setAttribute('data-description', summary);
+                li.setAttribute('data-url', element.url);
+                li.setAttribute('data-source', element.source_raw[0]);
+                li.appendChild(node);
+                list.appendChild(li);
+                li.addEventListener("click", function () {
+                    var el = document.getElementById("description");
+                    el.innerHTML = this.dataset.description + " <i>" + this.dataset.source + '</i> <a href="https://2e.aonprd.com/' + this.dataset.url + '" target="blank">Source</a>'
+                })
+            });
+        }
+    </script>
+    <style>
+        form {
+            display: flex;
+            flex-direction: column;
+            max-width: 300px;
+        }
+
+        body {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+    </style>
+</head>
+
+<body>
+
+    <h1>Pathfinder 2e Shop</h1>
+    <form id="form" onsubmit="GetData(event)">
+        <!--<label>Shop Type</label>
+        <select name="shoptype">
+            <option>Smithy</option>
+            <option>Fletcher</option>
+            <option>Magic Shop</option>
+            <option>Gunsmith</option>
+            <option>Alchemist</option>
+            <option>Any</option>
+        </select>-->
+        <label>Min Level</label>
+        <input type="number" value="0" min="0" max="25" name="minlevel">
+        <label>Max Level</label>
+        <input type="number" value="1" min="0" max="25" name="maxlevel">
+        <label>Number of items</label>
+        <input type="number" min="1" max="20" name="amount">
+        <!--<label>Max rarity</label>
+        <select name="rarity">
+            <option selected>Common</option>
+            <option>Uncommon</option>
+            <option>Rare</option>
+        </select>-->
+        <button type="submit">Generate</button>
+    </form>
+    <ul id="results"></ul>
+    <div id="description"></div>
+</body>
+
+</html>
